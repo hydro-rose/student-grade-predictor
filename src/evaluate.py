@@ -1,8 +1,9 @@
 """Evaluation module for Student Grade Prediction models.
-Calculates standard regression & classification metrics, cross-validation scores, and residuals.
+Calculates standard regression & classification metrics, cross-validation scores,
+bootstrapped confidence intervals, and residual analytics.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import numpy as np
 from sklearn.metrics import (
     mean_squared_error,
@@ -15,22 +16,53 @@ from sklearn.metrics import (
     roc_auc_score,
     confusion_matrix,
 )
+from sklearn.model_selection import cross_val_score, KFold
+
+
+def compute_bootstrap_ci(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    metric_fn,
+    n_bootstraps: int = 1000,
+    confidence_level: float = 0.95,
+    random_state: int = 42,
+) -> tuple:
+    """Compute empirical bootstrap confidence interval for a given metric."""
+    rng = np.random.RandomState(random_state)
+    bootstrapped_scores = []
+    n_samples = len(y_true)
+
+    for _ in range(n_bootstraps):
+        indices = rng.randint(0, n_samples, n_samples)
+        if len(np.unique(y_true[indices])) < 2 and metric_fn == r2_score:
+            continue
+        score = metric_fn(y_true[indices], y_pred[indices])
+        bootstrapped_scores.append(score)
+
+    if not bootstrapped_scores:
+        return 0.0, 0.0
+
+    alpha = (1.0 - confidence_level) / 2.0
+    lower = float(np.percentile(bootstrapped_scores, alpha * 100))
+    upper = float(np.percentile(bootstrapped_scores, (1.0 - alpha) * 100))
+    return round(lower, 4), round(upper, 4)
 
 
 def evaluate_regression(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     model_name: str = "Linear Regression",
+    compute_ci: bool = True,
 ) -> Dict[str, Any]:
     """Calculate comprehensive regression evaluation metrics.
     
     Includes:
-    - MSE (Mean Squared Error) - exactly matching report metric
+    - MSE (Mean Squared Error)
     - RMSE (Root Mean Squared Error)
     - MAE (Mean Absolute Error)
     - R2 Score (Accuracy score as termed in report)
-    - Explained Variance
-    - Max Error
+    - 95% Bootstrap Confidence Intervals
+    - Residual statistics
     """
     mse = float(mean_squared_error(y_true, y_pred))
     rmse = float(np.sqrt(mse))
@@ -41,7 +73,7 @@ def evaluate_regression(
     mean_residual = float(np.mean(residuals))
     std_residual = float(np.std(residuals))
 
-    return {
+    res = {
         "model_name": model_name,
         "mse": round(mse, 4),
         "rmse": round(rmse, 4),
@@ -54,11 +86,39 @@ def evaluate_regression(
         "raw_r2": r2,
     }
 
+    if compute_ci and len(y_true) > 10:
+        mse_ci = compute_bootstrap_ci(y_true, y_pred, mean_squared_error)
+        r2_ci = compute_bootstrap_ci(y_true, y_pred, r2_score)
+        res["mse_95_ci"] = list(mse_ci)
+        res["r2_95_ci"] = list(r2_ci)
+
+    return res
+
+
+def evaluate_cross_validation(
+    model,
+    X: np.ndarray,
+    y: np.ndarray,
+    cv_folds: int = 5,
+    random_state: int = 42,
+) -> Dict[str, float]:
+    """Run k-fold cross-validation on regression model."""
+    kf = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
+    r2_scores = cross_val_score(model, X, y, cv=kf, scoring="r2")
+    neg_mse_scores = cross_val_score(model, X, y, cv=kf, scoring="neg_mean_squared_error")
+
+    return {
+        "cv_r2_mean": round(float(np.mean(r2_scores)), 4),
+        "cv_r2_std": round(float(np.std(r2_scores)), 4),
+        "cv_mse_mean": round(float(np.mean(-neg_mse_scores)), 4),
+        "cv_mse_std": round(float(np.std(-neg_mse_scores)), 4),
+    }
+
 
 def evaluate_classification(
     y_true: np.ndarray,
     y_pred: np.ndarray,
-    y_proba: np.ndarray = None,
+    y_proba: Optional[np.ndarray] = None,
     model_name: str = "Classifier",
 ) -> Dict[str, Any]:
     """Calculate classification metrics for pass/fail early risk intervention."""
@@ -72,7 +132,11 @@ def evaluate_classification(
     roc_auc = None
     if y_proba is not None and len(np.unique(y_true)) > 1:
         try:
-            roc_auc = float(roc_auc_score(y_true, y_proba))
+            if y_proba.ndim == 2:
+                proba_pos = y_proba[:, 1]
+            else:
+                proba_pos = y_proba
+            roc_auc = float(roc_auc_score(y_true, proba_pos))
         except Exception:
             roc_auc = None
 

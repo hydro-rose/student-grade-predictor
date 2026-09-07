@@ -21,8 +21,8 @@ class TestWebAppAPI(unittest.TestCase):
         with urllib.request.urlopen(f"{self.BASE_URL}/") as resp:
             self.assertEqual(resp.status, 200)
             html = resp.read().decode("utf-8")
-            self.assertIn("EduPredict AI", html)
-            self.assertIn("Student Profile & Evaluation Metrics", html)
+            self.assertIn("SynapseGrade AI", html)
+            self.assertIn("Student Profile", html)
 
     def test_get_metrics(self):
         with urllib.request.urlopen(f"{self.BASE_URL}/api/metrics") as resp:
@@ -64,6 +64,47 @@ class TestWebAppAPI(unittest.TestCase):
             data = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(data["status"], "AT RISK / FAIL")
             self.assertLess(data["predicted_g3"], 10.0)
+
+    def test_get_models(self):
+        with urllib.request.urlopen(f"{self.BASE_URL}/api/models") as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("available_models", data)
+            self.assertIn("regression_leaderboard", data)
+            self.assertGreaterEqual(len(data["regression_leaderboard"]), 6)
+
+    def test_explain_endpoint(self):
+        payload = {"studytime": 3.0, "failures": 0, "absences": 2, "g1": 16.0, "g2": 17.0}
+        req = urllib.request.Request(
+            f"{self.BASE_URL}/api/explain",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("baseline_grade", data)
+            self.assertIn("contributions", data)
+
+    def test_optimize_goal_endpoint(self):
+        payload = {"target_g3": 15.0, "studytime": 2.0, "failures": 0, "absences": 8, "g1": 11.0, "g2": 12.0}
+        req = urllib.request.Request(
+            f"{self.BASE_URL}/api/optimize-goal",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data["target_g3"], 15.0)
+            self.assertIn("action_steps", data)
+
+    def test_get_clusters(self):
+        with urllib.request.urlopen(f"{self.BASE_URL}/api/clusters") as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("optimal_k", data)
+            self.assertIn("profiles", data)
 
 
 if __name__ == "__main__":

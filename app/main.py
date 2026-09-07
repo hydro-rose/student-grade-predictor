@@ -25,9 +25,9 @@ from src.predictor import GradePredictor
 from src.data_loader import load_raw_data, CORE_FEATURES
 
 app = FastAPI(
-    title="Student Grade Prediction Intelligence System",
-    description="ML-powered academic performance forecasting based on continuous evaluation.",
-    version="1.0.0",
+    title="SynapseGrade AI - Neural Academic Intelligence Platform",
+    description="Next-generation multi-model performance forecasting, explainable AI (XAI), and continuous academic evaluation.",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -55,6 +55,16 @@ class StudentPredictionRequest(BaseModel):
     absences: int = Field(4, ge=0, le=93, description="Number of school absences (0 to 93)")
     g1: float = Field(12.0, ge=0.0, le=20.0, description="First period grade (0 to 20)")
     g2: float = Field(13.0, ge=0.0, le=20.0, description="Second period grade (0 to 20)")
+    model_name: Optional[str] = Field("Linear Regression", description="Selected AI/ML regression model")
+
+
+class GoalOptimizationRequest(BaseModel):
+    target_g3: float = Field(14.0, ge=0.0, le=20.0, description="Desired final grade target (0 to 20)")
+    studytime: float = Field(2.0, ge=1.0, le=4.0)
+    failures: int = Field(0, ge=0, le=4)
+    absences: int = Field(4, ge=0, le=93)
+    g1: float = Field(11.0, ge=0.0, le=20.0)
+    g2: float = Field(12.0, ge=0.0, le=20.0)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -64,13 +74,16 @@ async def serve_index(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"metadata": metadata},
+        context={
+            "metadata": metadata,
+            "available_models": predictor.available_models,
+        },
     )
 
 
 @app.post("/api/predict")
 async def predict_grade(payload: StudentPredictionRequest) -> Dict[str, Any]:
-    """Generate real-time G3 grade prediction, letter grade, and pedagogical advice."""
+    """Generate real-time G3 grade prediction using selected AI/ML model."""
     try:
         result = predictor.predict_single(
             studytime=payload.studytime,
@@ -78,10 +91,59 @@ async def predict_grade(payload: StudentPredictionRequest) -> Dict[str, Any]:
             absences=payload.absences,
             g1=payload.g1,
             g2=payload.g2,
+            model_name=payload.model_name or "Linear Regression",
         )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/models")
+async def get_models() -> Dict[str, Any]:
+    """Retrieve full AI model comparison leaderboards and available architectures."""
+    return {
+        "available_models": predictor.available_models,
+        "regression_leaderboard": predictor.metadata.get("regression_leaderboard", []),
+        "classification_leaderboard": predictor.metadata.get("classification_leaderboard", []),
+    }
+
+
+@app.post("/api/explain")
+async def explain_grade(payload: StudentPredictionRequest) -> Dict[str, Any]:
+    """Explainable AI (XAI): Returns waterfall feature attribution points."""
+    try:
+        return predictor.explain_prediction(
+            studytime=payload.studytime,
+            failures=payload.failures,
+            absences=payload.absences,
+            g1=payload.g1,
+            g2=payload.g2,
+            model_name=payload.model_name or "Linear Regression",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/optimize-goal")
+async def optimize_academic_goal(payload: GoalOptimizationRequest) -> Dict[str, Any]:
+    """Counterfactual AI Goal Optimizer: Determines study/absence changes to hit target score."""
+    try:
+        return predictor.optimize_goal(
+            target_g3=payload.target_g3,
+            studytime=payload.studytime,
+            failures=payload.failures,
+            absences=payload.absences,
+            g1=payload.g1,
+            g2=payload.g2,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/clusters")
+async def get_clusters() -> Dict[str, Any]:
+    """Retrieve unsupervised K-Means student persona clusters and silhouette scores."""
+    return predictor.metadata.get("unsupervised_clusters", {})
 
 
 @app.get("/api/metrics")
@@ -148,7 +210,7 @@ async def get_sample_students() -> List[Dict[str, Any]]:
 
 
 @app.post("/api/predict-batch")
-async def predict_batch(file: UploadFile = File(...)):
+async def predict_batch(file: UploadFile = File(...), model_name: str = "Linear Regression"):
     """Upload CSV to evaluate an entire class cohort and identify at-risk students."""
     try:
         contents = await file.read()
@@ -159,7 +221,7 @@ async def predict_batch(file: UploadFile = File(...)):
         except Exception:
             df = pd.read_csv(io.StringIO(contents.decode("utf-8")), sep=";")
 
-        batch_results = predictor.predict_batch(df)
+        batch_results = predictor.predict_batch(df, model_name=model_name)
         records = batch_results.to_dict(orient="records")
         
         # Aggregate cohort statistics

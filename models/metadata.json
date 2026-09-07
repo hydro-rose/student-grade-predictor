@@ -22,8 +22,18 @@
     "std_residual": 1.5582,
     "raw_mse": 2.62121985631895,
     "raw_r2": 0.8613923174669003,
+    "mse_95_ci": [
+      1.5193,
+      4.1908
+    ],
+    "r2_95_ci": [
+      0.7807,
+      0.9193
+    ],
     "cv_r2_mean": 0.8296,
-    "cv_r2_std": 0.0426
+    "cv_r2_std": 0.0426,
+    "cv_mse_mean": 3.6686,
+    "cv_mse_std": 1.2836
   },
   "ridge_regression": {
     "model_name": "Ridge Regression",
@@ -35,7 +45,19 @@
     "mean_residual": 0.4394,
     "std_residual": 1.558,
     "raw_mse": 2.620485680619579,
-    "raw_r2": 0.8614311399990952
+    "raw_r2": 0.8614311399990952,
+    "mse_95_ci": [
+      1.5206,
+      4.1897
+    ],
+    "r2_95_ci": [
+      0.7808,
+      0.9193
+    ],
+    "cv_r2_mean": 0.8296,
+    "cv_r2_std": 0.0426,
+    "cv_mse_mean": 3.6684,
+    "cv_mse_std": 1.2835
   },
   "rf_regressor": {
     "model_name": "Random Forest Regressor",
@@ -47,10 +69,22 @@
     "mean_residual": 0.3859,
     "std_residual": 1.6921,
     "raw_mse": 3.0120596232995256,
-    "raw_r2": 0.84072507194289
+    "raw_r2": 0.84072507194289,
+    "mse_95_ci": [
+      1.5891,
+      4.7592
+    ],
+    "r2_95_ci": [
+      0.6955,
+      0.9223
+    ],
+    "cv_r2_mean": 0.8609,
+    "cv_r2_std": 0.039,
+    "cv_mse_mean": 2.9125,
+    "cv_mse_std": 0.9309
   },
   "classifier": {
-    "model_name": "Pass/Fail Classifier",
+    "model_name": "Random Forest Classifier",
     "accuracy": 0.9114,
     "accuracy_pct": 91.14,
     "precision": 0.9574,
@@ -66,6 +100,342 @@
         5,
         45
       ]
+    ]
+  },
+  "regression_leaderboard": [
+    {
+      "model_name": "Neural Network (MLP)",
+      "mse": 2.3587,
+      "rmse": 1.5358,
+      "mae": 1.0302,
+      "r2_score": 0.8753,
+      "r2_percentage": 87.53,
+      "mean_residual": 0.2478,
+      "std_residual": 1.5157,
+      "raw_mse": 2.358699671984592,
+      "raw_r2": 0.8752741420994388,
+      "mse_95_ci": [
+        1.3149,
+        3.5394
+      ],
+      "r2_95_ci": [
+        0.7887,
+        0.9363
+      ],
+      "cv_r2_mean": 0.8689,
+      "cv_r2_std": 0.0188,
+      "cv_mse_mean": 2.7316,
+      "cv_mse_std": 0.5672
+    },
+    {
+      "model_name": "Stacking Ensemble Regressor",
+      "mse": 2.3955,
+      "rmse": 1.5477,
+      "mae": 1.0225,
+      "r2_score": 0.8733,
+      "r2_percentage": 87.33,
+      "mean_residual": 0.3675,
+      "std_residual": 1.5035,
+      "raw_mse": 2.395530023097227,
+      "raw_r2": 0.8733265871843879,
+      "mse_95_ci": [
+        1.4026,
+        3.574
+      ],
+      "r2_95_ci": [
+        0.7725,
+        0.9303
+      ],
+      "cv_r2_mean": 0.8663,
+      "cv_r2_std": 0.0363,
+      "cv_mse_mean": 2.851,
+      "cv_mse_std": 0.9754
+    },
+    {
+      "model_name": "Lasso Regression",
+      "mse": 2.6176,
+      "rmse": 1.6179,
+      "mae": 1.1537,
+      "r2_score": 0.8616,
+      "r2_percentage": 86.16,
+      "mean_residual": 0.4491,
+      "std_residual": 1.5543,
+      "raw_mse": 2.617607844054901,
+      "raw_r2": 0.8615833173359093,
+      "mse_95_ci": [
+        1.5308,
+        4.1289
+      ],
+      "r2_95_ci": [
+        0.7831,
+        0.9191
+      ],
+      "cv_r2_mean": 0.829,
+      "cv_r2_std": 0.0425,
+      "cv_mse_mean": 3.6789,
+      "cv_mse_std": 1.2838
+    },
+    {
+      "model_name": "Linear Regression",
+      "mse": 2.6212,
+      "rmse": 1.619,
+      "mae": 1.164,
+      "r2_score": 0.8614,
+      "r2_percentage": 86.14,
+      "mean_residual": 0.4397,
+      "std_residual": 1.5582,
+      "raw_mse": 2.62121985631895,
+      "raw_r2": 0.8613923174669003,
+      "mse_95_ci": [
+        1.5193,
+        4.1908
+      ],
+      "r2_95_ci": [
+        0.7807,
+        0.9193
+      ],
+      "cv_r2_mean": 0.8296,
+      "cv_r2_std": 0.0426,
+      "cv_mse_mean": 3.6686,
+      "cv_mse_std": 1.2836
+    },
+    {
+      "model_name": "Ridge Regression",
+      "mse": 2.6205,
+      "rmse": 1.6188,
+      "mae": 1.1635,
+      "r2_score": 0.8614,
+      "r2_percentage": 86.14,
+      "mean_residual": 0.4394,
+      "std_residual": 1.558,
+      "raw_mse": 2.620485680619579,
+      "raw_r2": 0.8614311399990952,
+      "mse_95_ci": [
+        1.5206,
+        4.1897
+      ],
+      "r2_95_ci": [
+        0.7808,
+        0.9193
+      ],
+      "cv_r2_mean": 0.8296,
+      "cv_r2_std": 0.0426,
+      "cv_mse_mean": 3.6684,
+      "cv_mse_std": 1.2835
+    },
+    {
+      "model_name": "Support Vector Regressor (SVR)",
+      "mse": 2.6811,
+      "rmse": 1.6374,
+      "mae": 1.1138,
+      "r2_score": 0.8582,
+      "r2_percentage": 85.82,
+      "mean_residual": 0.0164,
+      "std_residual": 1.6373,
+      "raw_mse": 2.6811400823142124,
+      "raw_r2": 0.858223791315978,
+      "mse_95_ci": [
+        1.3866,
+        4.4042
+      ],
+      "r2_95_ci": [
+        0.7616,
+        0.9238
+      ],
+      "cv_r2_mean": 0.8377,
+      "cv_r2_std": 0.0419,
+      "cv_mse_mean": 3.5027,
+      "cv_mse_std": 1.2527
+    },
+    {
+      "model_name": "Gradient Boosting Regressor",
+      "mse": 2.784,
+      "rmse": 1.6685,
+      "mae": 1.0826,
+      "r2_score": 0.8528,
+      "r2_percentage": 85.28,
+      "mean_residual": 0.2251,
+      "std_residual": 1.6533,
+      "raw_mse": 2.7839628798710208,
+      "raw_r2": 0.852786616846785,
+      "mse_95_ci": [
+        1.5351,
+        4.329
+      ],
+      "r2_95_ci": [
+        0.7221,
+        0.927
+      ],
+      "cv_r2_mean": 0.8696,
+      "cv_r2_std": 0.03,
+      "cv_mse_mean": 2.757,
+      "cv_mse_std": 0.815
+    },
+    {
+      "model_name": "Random Forest Regressor",
+      "mse": 3.0121,
+      "rmse": 1.7355,
+      "mae": 1.0735,
+      "r2_score": 0.8407,
+      "r2_percentage": 84.07,
+      "mean_residual": 0.3859,
+      "std_residual": 1.6921,
+      "raw_mse": 3.0120596232995256,
+      "raw_r2": 0.84072507194289,
+      "mse_95_ci": [
+        1.5891,
+        4.7592
+      ],
+      "r2_95_ci": [
+        0.6955,
+        0.9223
+      ],
+      "cv_r2_mean": 0.8609,
+      "cv_r2_std": 0.039,
+      "cv_mse_mean": 2.9125,
+      "cv_mse_std": 0.9309
+    }
+  ],
+  "classification_leaderboard": [
+    {
+      "model_name": "Logistic Regression",
+      "accuracy": 0.9241,
+      "accuracy_pct": 92.41,
+      "precision": 0.94,
+      "recall": 0.94,
+      "f1_score": 0.94,
+      "roc_auc": 0.9828,
+      "confusion_matrix": [
+        [
+          26,
+          3
+        ],
+        [
+          3,
+          47
+        ]
+      ]
+    },
+    {
+      "model_name": "Random Forest Classifier",
+      "accuracy": 0.9114,
+      "accuracy_pct": 91.14,
+      "precision": 0.9574,
+      "recall": 0.9,
+      "f1_score": 0.9278,
+      "roc_auc": 0.9697,
+      "confusion_matrix": [
+        [
+          27,
+          2
+        ],
+        [
+          5,
+          45
+        ]
+      ]
+    },
+    {
+      "model_name": "Neural Network (MLP)",
+      "accuracy": 0.9114,
+      "accuracy_pct": 91.14,
+      "precision": 0.9057,
+      "recall": 0.96,
+      "f1_score": 0.932,
+      "roc_auc": 0.96,
+      "confusion_matrix": [
+        [
+          24,
+          5
+        ],
+        [
+          2,
+          48
+        ]
+      ]
+    },
+    {
+      "model_name": "Gradient Boosting Classifier",
+      "accuracy": 0.8861,
+      "accuracy_pct": 88.61,
+      "precision": 0.902,
+      "recall": 0.92,
+      "f1_score": 0.9109,
+      "roc_auc": 0.9628,
+      "confusion_matrix": [
+        [
+          24,
+          5
+        ],
+        [
+          4,
+          46
+        ]
+      ]
+    }
+  ],
+  "unsupervised_clusters": {
+    "silhouette_analysis": {
+      "2": 0.268,
+      "3": 0.2675,
+      "4": 0.2805,
+      "5": 0.2908,
+      "6": 0.291
+    },
+    "optimal_k": 4,
+    "profiles": [
+      {
+        "cluster_id": 0,
+        "persona_name": "Chronic Absentees (Attendance Risk)",
+        "student_count": 46,
+        "percentage": 11.6,
+        "mean_studytime": 1.72,
+        "mean_failures": 0.39,
+        "mean_absences": 21.09,
+        "mean_G1": 10.48,
+        "mean_G2": 10.02,
+        "mean_G3": 10.04,
+        "pass_rate": 58.7
+      },
+      {
+        "cluster_id": 1,
+        "persona_name": "Critical Support (Past Failures)",
+        "student_count": 43,
+        "percentage": 10.9,
+        "mean_studytime": 1.49,
+        "mean_failures": 2.09,
+        "mean_absences": 5.02,
+        "mean_G1": 6.95,
+        "mean_G2": 6.37,
+        "mean_G3": 5.28,
+        "pass_rate": 11.6
+      },
+      {
+        "cluster_id": 2,
+        "persona_name": "Steady Core / Borderline Performers",
+        "student_count": 161,
+        "percentage": 40.8,
+        "mean_studytime": 2.16,
+        "mean_failures": 0.08,
+        "mean_absences": 3.41,
+        "mean_G1": 8.99,
+        "mean_G2": 8.84,
+        "mean_G3": 8.24,
+        "pass_rate": 54.7
+      },
+      {
+        "cluster_id": 3,
+        "persona_name": "High Honor Scholars (Top Achievers)",
+        "student_count": 145,
+        "percentage": 36.7,
+        "mean_studytime": 2.17,
+        "mean_failures": 0.08,
+        "mean_absences": 3.59,
+        "mean_G1": 14.34,
+        "mean_G2": 14.3,
+        "mean_G3": 14.48,
+        "pass_rate": 100.0
+      }
     ]
   },
   "coefficients": {

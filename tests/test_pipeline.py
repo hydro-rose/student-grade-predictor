@@ -92,16 +92,68 @@ class TestPredictor(unittest.TestCase):
         self.assertIn("predicted_letter", batch_out.columns)
 
 
+    def test_multi_model_predictions(self):
+        models_to_test = [
+            "Linear Regression",
+            "Neural Network (MLP)",
+            "Stacking Ensemble Regressor",
+            "Support Vector Regressor (SVR)",
+            "Gradient Boosting Regressor",
+            "Random Forest Regressor",
+        ]
+        for m in models_to_test:
+            res = self.predictor.predict_single(
+                studytime=3, failures=0, absences=2, g1=16, g2=17, model_name=m
+            )
+            self.assertGreaterEqual(res["predicted_g3"], 14.0, f"Failed for model {m}")
+            self.assertEqual(res["status"], "PASS")
+
+    def test_xai_attribution(self):
+        xai = self.predictor.explain_prediction(
+            studytime=3, failures=0, absences=2, g1=16, g2=17, model_name="Linear Regression"
+        )
+        self.assertIn("baseline_grade", xai)
+        self.assertIn("contributions", xai)
+        self.assertEqual(len(xai["contributions"]), 5)
+        g2_contrib = next(c for c in xai["contributions"] if c["feature"] == "G2")
+        self.assertGreater(g2_contrib["impact_points"], 0.0)
+
+    def test_counterfactual_goal_optimizer(self):
+        goal = self.predictor.optimize_goal(
+            target_g3=15.0, studytime=2.0, failures=0, absences=8, g1=11.0, g2=12.0
+        )
+        self.assertEqual(goal["target_g3"], 15.0)
+        self.assertGreater(goal["points_gap"], 0.0)
+        self.assertGreaterEqual(goal["recommended_studytime"], 2.0)
+        self.assertLessEqual(goal["recommended_absences"], 8)
+        self.assertTrue(len(goal["action_steps"]) >= 2)
+
+    def test_persona_clustering(self):
+        input_df = pd.DataFrame([[3.0, 0, 2, 16.0, 17.0]], columns=CORE_FEATURES)
+        cluster = self.predictor.assign_cluster(input_df)
+        self.assertIn("cluster_id", cluster)
+        self.assertIn("persona_name", cluster)
+
+
 class TestEvaluation(unittest.TestCase):
     """Test evaluation logic."""
 
     def test_evaluate_regression(self):
         y_true = np.array([10.0, 15.0, 12.0, 8.0])
         y_pred = np.array([10.5, 14.8, 11.9, 8.2])
-        metrics = evaluate_regression(y_true, y_pred)
-        self.assertIn("mse", metrics)
-        self.assertIn("r2_score", metrics)
-        self.assertGreater(metrics["r2_score"], 0.9)
+        res = evaluate_regression(y_true, y_pred, model_name="TestModel", compute_ci=False)
+        self.assertEqual(res["model_name"], "TestModel")
+        self.assertIn("mse", res)
+        self.assertIn("r2_score", res)
+        self.assertGreater(res["r2_score"], 0.9)
+
+    def test_evaluate_classification(self):
+        y_true = np.array([1, 1, 0, 0])
+        y_pred = np.array([1, 1, 0, 1])
+        res = evaluate_classification(y_true, y_pred)
+        self.assertEqual(res["accuracy"], 0.75)
+        self.assertIn("f1_score", res)
+        self.assertIn("confusion_matrix", res)
 
 
 if __name__ == "__main__":
