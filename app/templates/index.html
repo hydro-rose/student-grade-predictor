@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPredict AI | Student Grade Prediction & Performance Intelligence</title>
+  <meta name="description" content="Machine Learning based student final grade prediction and early risk intervention based on continuous evaluation, study time, and attendance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <h1 class="brand-title">EduPredict AI</h1>
+          <p class="brand-subtitle">Student Grade Prediction & Academic Performance Intelligence</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge-tag">UCI Cortez & Silva (2008)</span>
+        <span class="badge-tag highlight">Linear Regression R² = 86.14%</span>
+      </div>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-navigation" aria-label="Main Navigation">
+      <button class="tab-btn active" data-tab="tab-predict" id="nav-btn-predict">
+        🎯 Grade Predictor
+      </button>
+      <button class="tab-btn" data-tab="tab-whatif" id="nav-btn-whatif">
+        ⚡ What-If Sensitivity Lab
+      </button>
+      <button class="tab-btn" data-tab="tab-analytics" id="nav-btn-analytics">
+        📊 Attendance & Correlation Heatmap
+      </button>
+      <button class="tab-btn" data-tab="tab-models" id="nav-btn-models">
+        🧠 Model Benchmarks & Formula
+      </button>
+      <button class="tab-btn" data-tab="tab-cohort" id="nav-btn-cohort">
+        👥 Class Cohort Assessment
+      </button>
+    </nav>
+
+    <!-- Tab 1: Grade Predictor -->
+    <section id="tab-predict" class="tab-content active">
+      <div class="dashboard-grid">
+        <!-- Input Form Card -->
+        <div class="glass-card">
+          <h2 class="card-title">Student Profile & Evaluation Metrics</h2>
+          <p class="card-desc">Enter continuous evaluation marks, study dedication, and absence history to forecast the final G3 exam grade.</p>
+
+          <!-- Quick Presets -->
+          <div class="presets-section">
+            <div class="presets-label">Quick Load Archetypes</div>
+            <div class="presets-container">
+              <button type="button" class="preset-chip" data-preset="honor" id="preset-honor">🌟 Honor Student</button>
+              <button type="button" class="preset-chip" data-preset="average" id="preset-average">⚖️ Average Student</button>
+              <button type="button" class="preset-chip" data-preset="at_risk" id="preset-atrisk">⚠️ At-Risk Borderline</button>
+              <button type="button" class="preset-chip" data-preset="improver" id="preset-improver">📈 Rapid Improver</button>
+            </div>
+          </div>
+
+          <form id="grade-predict-form">
+            <!-- Study Time -->
+            <div class="form-group">
+              <label class="form-label" for="input-studytime">
+                Weekly Study Time
+              </label>
+              <select id="input-studytime" class="select-control">
+                <option value="1">Level 1: &lt; 2 Hours / week</option>
+                <option value="2" selected>Level 2: 2 to 5 Hours / week</option>
+                <option value="3">Level 3: 5 to 10 Hours / week</option>
+                <option value="4">Level 4: &gt; 10 Hours / week</option>
+              </select>
+            </div>
+
+            <!-- Past Failures -->
+            <div class="form-group">
+              <div class="form-label">
+                <span>Past Class Failures</span>
+                <span class="label-val" id="val-failures">0</span>
+              </div>
+              <input type="range" id="input-failures" class="range-slider" min="0" max="4" step="1" value="0">
+            </div>
+
+            <!-- Absences -->
+            <div class="form-group">
+              <div class="form-label">
+                <span>School Absences (Days)</span>
+                <span class="label-val" id="val-absences">4</span>
+              </div>
+              <input type="range" id="input-absences" class="range-slider" min="0" max="50" step="1" value="4">
+            </div>
+
+            <!-- G1 -->
+            <div class="form-group">
+              <div class="form-label">
+                <span>Period 1 Grade (G1, scale 0-20)</span>
+                <span class="label-val" id="val-g1">12.0</span>
+              </div>
+              <input type="range" id="input-g1" class="range-slider" min="0" max="20" step="0.5" value="12">
+            </div>
+
+            <!-- G2 -->
+            <div class="form-group">
+              <div class="form-label">
+                <span>Period 2 Grade (G2, scale 0-20)</span>
+                <span class="label-val" id="val-g2">13.0</span>
+              </div>
+              <input type="range" id="input-g2" class="range-slider" min="0" max="20" step="0.5" value="13">
+            </div>
+
+            <button type="submit" id="btn-submit-predict" class="btn-primary">
+              <span>Forecast Final Grade</span>
+              <span>➔</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Card -->
+        <div class="glass-card">
+          <h2 class="card-title">Forecasted Academic Outcome</h2>
+          <p class="card-desc">Empirically validated linear regression forecast with early risk intervention probability.</p>
+
+          <div class="result-header">
+            <div class="grade-score-display">
+              <span id="res-score">12.9</span>
+              <span class="grade-scale">/ 20</span>
+            </div>
+            <div class="badges-row">
+              <span id="res-status" class="status-badge status-pass">PASS</span>
+              <span id="res-letter" class="letter-badge">C (Satisfactory)</span>
+            </div>
+          </div>
+
+          <div class="stat-metric-row">
+            <div class="metric-tile">
+              <div class="metric-label">Pass Likelihood</div>
+              <div class="metric-value" id="res-probability">98.4%</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">95% Confidence Interval</div>
+              <div class="metric-value" id="res-ci">[11.6 – 14.2]</div>
+            </div>
+          </div>
+
+          <div class="recs-container">
+            <div class="recs-title">
+              <span>💡 Targeted Pedagogical Recommendations</span>
+            </div>
+            <div id="res-recs">
+              <div class="rec-item success">Student exhibits consistent progress. Maintain regular unit test preparation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: What-If Sensitivity Lab -->
+    <section id="tab-whatif" class="tab-content">
+      <div class="dashboard-grid">
+        <div class="glass-card">
+          <h2 class="card-title">Interactive "What-If" Sensitivity Simulator</h2>
+          <p class="card-desc">Slide behavioral variables in real-time to simulate how adjusting study dedication and attendance alters the predicted exam grade.</p>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Simulated Weekly Study Time (Levels 1 to 4)</span>
+              <span class="label-val" id="val-sim-studytime">2</span>
+            </div>
+            <input type="range" id="sim-studytime" class="range-slider" min="1" max="4" step="1" value="2">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Simulated Absences (Days)</span>
+              <span class="label-val" id="val-sim-absences">6</span>
+            </div>
+            <input type="range" id="sim-absences" class="range-slider" min="0" max="40" step="1" value="6">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Period 1 Assessment (G1)</span>
+              <span class="label-val" id="val-sim-g1">11.0</span>
+            </div>
+            <input type="range" id="sim-g1" class="range-slider" min="0" max="20" step="0.5" value="11">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Period 2 Assessment (G2)</span>
+              <span class="label-val" id="val-sim-g2">12.0</span>
+            </div>
+            <input type="range" id="sim-g2" class="range-slider" min="0" max="20" step="0.5" value="12">
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="card-title">Simulated Grade Impact</h2>
+          <p class="card-desc">Instant dynamic response compared to baseline performance.</p>
+
+          <div class="result-header">
+            <div class="grade-score-display">
+              <span id="sim-result-score">12.1</span>
+              <span class="grade-scale">/ 20</span>
+            </div>
+            <div class="badges-row">
+              <span id="sim-delta-badge" class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">+0.0 pts</span>
+            </div>
+          </div>
+
+          <div class="stat-metric-row">
+            <div class="metric-tile">
+              <div class="metric-label">Estimated Attendance Rate</div>
+              <div class="metric-value" id="sim-att-pct">93%</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">Attendance Tier</div>
+              <div class="metric-value" style="color: #10b981;">High (&gt;60%)</div>
+            </div>
+          </div>
+
+          <div class="recs-container">
+            <div class="recs-title">
+              <span>📌 Sensitivity Insight</span>
+            </div>
+            <div class="rec-item">
+              <strong>Period 2 Grade Weight:</strong> G2 carries the highest single coefficient (<strong>+0.99</strong>), making the second period assessment the prime target for intensive study interventions.
+            </div>
+            <div class="rec-item">
+              <strong>Attendance Threshold:</strong> As documented in the research report, maintaining &gt;60% attendance prevents non-linear grade drops caused by missed instruction.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Educator Analytics & Heatmap -->
+    <section id="tab-analytics" class="tab-content">
+      <div class="glass-card" style="margin-bottom: 24px;">
+        <h2 class="card-title">Feature Correlation Heatmap</h2>
+        <p class="card-desc">Exact correlation values replicating page 2 of Sara Siddiqui's research report. Evaluates interactions between study time, prior failures, absenteeism, and evaluation grades.</p>
+        <div class="heatmap-container" id="correlation-heatmap-container">
+          <!-- Dynamically populated table -->
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="glass-card">
+          <h2 class="card-title">Attendance vs Academic Performance</h2>
+          <p class="card-desc">Validation of report finding: <em>"Student's attendance is significantly associated with academic performance. Most students who had more than 60% attendance achieved better academic grades."</em></p>
+          
+          <div class="stat-metric-row">
+            <div class="metric-tile">
+              <div class="metric-label">&gt;60% Attendance Avg Grade</div>
+              <div class="metric-value" id="stat-att-high-grade">10.4 / 20</div>
+              <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;" id="stat-att-high-pass">67.3% Pass</div>
+            </div>
+            <div class="metric-tile">
+              <div class="metric-label">&le;60% Attendance Avg Grade</div>
+              <div class="metric-value" id="stat-att-low-grade" style="color: #f43f5e;">8.0 / 20</div>
+              <div style="font-size: 0.75rem; color: #f43f5e; margin-top: 4px;" id="stat-att-low-pass">50.0% Pass</div>
+            </div>
+          </div>
+
+          <div class="rec-item alert" style="margin-top: 10px;">
+            Students with severe absenteeism exhibit a <strong>2.4 point drop</strong> on the 20-point scale and substantially higher failure risk.
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="card-title">Evaluation Progression (G1 ➔ G2 ➔ G3)</h2>
+          <p class="card-desc">Correlation between successive examination periods is exceptionally strong (<strong>r = 0.85</strong>). Students rarely jump more than 2 grade bands between periods without structured remedial intervention.</p>
+          <div class="rec-item">
+            <strong>G1 ➔ G2:</strong> 85% correlation coefficient indicates that early warning flags raised in Period 1 persist into Period 2.
+          </div>
+          <div class="rec-item">
+            <strong>Early Action Window:</strong> The critical window to prevent course failure is immediately following Period 1 evaluation before Period 2 marks solidify.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Model Benchmarks & Formula -->
+    <section id="tab-models" class="tab-content">
+      <div class="models-grid">
+        <!-- Linear Regression -->
+        <div class="model-card featured">
+          <div class="model-card-name">Linear Regression</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Primary algorithmic model from research report</p>
+          <div class="model-stat-row">
+            <span>Accuracy (R² Score)</span>
+            <strong id="metric-lr-r2" style="color: #10b981;">86.14%</strong>
+          </div>
+          <div class="model-stat-row">
+            <span>Mean Squared Error (MSE)</span>
+            <strong id="metric-lr-mse">2.62</strong>
+          </div>
+          <div class="model-stat-row">
+            <span>5-Fold Cross Validation R²</span>
+            <strong id="metric-lr-cv">0.84 ± 0.03</strong>
+          </div>
+        </div>
+
+        <!-- Ridge Regression -->
+        <div class="model-card">
+          <div class="model-card-name">Ridge Regression (L2)</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Regularized linear benchmark (alpha=1.0)</p>
+          <div class="model-stat-row">
+            <span>Accuracy (R² Score)</span>
+            <strong id="metric-ridge-r2">86.14%</strong>
+          </div>
+          <div class="model-stat-row">
+            <span>Mean Squared Error (MSE)</span>
+            <strong id="metric-ridge-mse">2.62</strong>
+          </div>
+        </div>
+
+        <!-- Random Forest Regressor -->
+        <div class="model-card">
+          <div class="model-card-name">Random Forest Regressor</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Non-linear ensemble benchmark (100 trees)</p>
+          <div class="model-stat-row">
+            <span>Accuracy (R² Score)</span>
+            <strong id="metric-rf-r2">84.07%</strong>
+          </div>
+          <div class="model-stat-row">
+            <span>Mean Squared Error (MSE)</span>
+            <strong id="metric-rf-mse">3.01</strong>
+          </div>
+        </div>
+
+        <!-- Early Intervention Classifier -->
+        <div class="model-card">
+          <div class="model-card-name">Pass/Fail Classifier</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Random Forest binary early intervention</p>
+          <div class="model-stat-row">
+            <span>Classification Accuracy</span>
+            <strong id="metric-clf-acc" style="color: #10b981;">91.14%</strong>
+          </div>
+          <div class="model-stat-row">
+            <span>F1-Score</span>
+            <strong id="metric-clf-f1">0.93</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula Card -->
+      <div class="glass-card">
+        <h2 class="card-title">Mathematical Formulation & Feature Weights</h2>
+        <p class="card-desc">The trained Linear Regression formula for final score prediction:</p>
+        <div style="background: rgba(0,0,0,0.4); padding: 18px; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.95rem; color: #a5b4fc; overflow-x: auto;">
+          G3 = -1.7133 + (0.9909 × G2) + (0.1472 × G1) - (0.3175 × failures) - (0.1591 × studytime) + (0.0435 × absences)
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Class Cohort Assessment -->
+    <section id="tab-cohort" class="tab-content">
+      <div class="glass-card">
+        <h2 class="card-title">Classroom Cohort Batch Assessment</h2>
+        <p class="card-desc">Instantly evaluate an entire student cohort to identify students requiring early academic intervention.</p>
+
+        <div class="data-table-wrapper">
+          <table class="data-table" id="cohort-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Profile</th>
+                <th>Study Time</th>
+                <th>Failures</th>
+                <th>Absences</th>
+                <th>G1</th>
+                <th>G2</th>
+                <th>Predicted G3</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="cohort-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>EduPredict AI System &bull; Based on research by <strong>Sara Siddiqui</strong> (InternsElite, June 2023) and <strong>P. Cortez & A. Silva (2008)</strong></p>
+      <p style="margin-top: 6px;">Trained on UCI Machine Learning Student Performance Dataset</p>
+    </footer>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{
+  "subject": "mat",
+  "dataset_size": 395,
+  "train_samples": 316,
+  "test_samples": 79,
+  "features": [
+    "studytime",
+    "failures",
+    "absences",
+    "G1",
+    "G2"
+  ],
+  "target": "G3",
+  "linear_regression": {
+    "model_name": "Linear Regression",
+    "mse": 2.6212,
+    "rmse": 1.619,
+    "mae": 1.164,
+    "r2_score": 0.8614,
+    "r2_percentage": 86.14,
+    "mean_residual": 0.4397,
+    "std_residual": 1.5582,
+    "raw_mse": 2.62121985631895,
+    "raw_r2": 0.8613923174669003,
+    "cv_r2_mean": 0.8296,
+    "cv_r2_std": 0.0426
+  },
+  "ridge_regression": {
+    "model_name": "Ridge Regression",
+    "mse": 2.6205,
+    "rmse": 1.6188,
+    "mae": 1.1635,
+    "r2_score": 0.8614,
+    "r2_percentage": 86.14,
+    "mean_residual": 0.4394,
+    "std_residual": 1.558,
+    "raw_mse": 2.620485680619579,
+    "raw_r2": 0.8614311399990952
+  },
+  "rf_regressor": {
+    "model_name": "Random Forest Regressor",
+    "mse": 3.0121,
+    "rmse": 1.7355,
+    "mae": 1.0735,
+    "r2_score": 0.8407,
+    "r2_percentage": 84.07,
+    "mean_residual": 0.3859,
+    "std_residual": 1.6921,
+    "raw_mse": 3.0120596232995256,
+    "raw_r2": 0.84072507194289
+  },
+  "classifier": {
+    "model_name": "Pass/Fail Classifier",
+    "accuracy": 0.9114,
+    "accuracy_pct": 91.14,
+    "precision": 0.9574,
+    "recall": 0.9,
+    "f1_score": 0.9278,
+    "roc_auc": 0.9697,
+    "confusion_matrix": [
+      [
+        27,
+        2
+      ],
+      [
+        5,
+        45
+      ]
+    ]
+  },
+  "coefficients": {
+    "studytime": -0.1591,
+    "failures": -0.3175,
+    "absences": 0.0435,
+    "G1": 0.1472,
+    "G2": 0.9909,
+    "intercept": -1.7133
+  },
+  "correlation_matrix": {
+    "studytime": {
+      "studytime": 1.0,
+      "failures": -0.174,
+      "absences": -0.063,
+      "G1": 0.161,
+      "G2": 0.136
+    },
+    "failures": {
+      "studytime": -0.174,
+      "failures": 1.0,
+      "absences": 0.064,
+      "G1": -0.355,
+      "G2": -0.356
+    },
+    "absences": {
+      "studytime": -0.063,
+      "failures": 0.064,
+      "absences": 1.0,
+      "G1": -0.031,
+      "G2": -0.032
+    },
+    "G1": {
+      "studytime": 0.161,
+      "failures": -0.355,
+      "absences": -0.031,
+      "G1": 1.0,
+      "G2": 0.852
+    },
+    "G2": {
+      "studytime": 0.136,
+      "failures": -0.356,
+      "absences": -0.032,
+      "G1": 0.852,
+      "G2": 1.0
+    }
+  },
+  "attendance_insights": {
+    "above_60_attendance": {
+      "count": 390,
+      "avg_grade": 10.43,
+      "pass_rate": 67.4
+    },
+    "below_60_attendance": {
+      "count": 5,
+      "avg_grade": 9.4,
+      "pass_rate": 40.0
+    }
+  }
+}
