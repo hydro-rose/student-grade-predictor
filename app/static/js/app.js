@@ -1,97 +1,104 @@
 /**
  * EduPredict AI - Frontend Application Logic
- * Interactivity, Live Model Predictions, Sensitivity Simulator, and Dynamic Visualizations
+ * Bidirectional inputs, live predictions, instant feedback & pedagogical tips
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  initTabs();
+  initDualInputs();
   initPresetButtons();
-  initPredictionForm();
-  initSensitivitySimulator();
-  loadAnalyticsAndMetrics();
-  loadSampleCohort();
+  initForm();
+  loadAnalytics();
+  loadCohort();
+
+  // Run initial prediction so the results card is immediately alive
+  triggerPrediction();
 });
 
-/* --------------------------------------------------------------------------
-   Tab Navigation
-   -------------------------------------------------------------------------- */
-function initTabs() {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanels = document.querySelectorAll('.tab-content');
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-tab');
-
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabPanels.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      const targetPanel = document.getElementById(targetId);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
-      }
-    });
-  });
-}
-
-/* --------------------------------------------------------------------------
-   Preset Profiles
-   -------------------------------------------------------------------------- */
 const PRESETS = {
   honor: { studytime: 3, failures: 0, absences: 2, g1: 16, g2: 17 },
   average: { studytime: 2, failures: 0, absences: 6, g1: 11, g2: 12 },
-  at_risk: { studytime: 1, failures: 2, absences: 24, g1: 6, g2: 7 },
-  improver: { studytime: 3, failures: 0, absences: 4, g1: 9, g2: 14 }
+  at_risk: { studytime: 1, failures: 2, absences: 24, g1: 6, g2: 7 }
 };
 
-function initPresetButtons() {
-  const chips = document.querySelectorAll('.preset-chip');
-  chips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const presetKey = chip.getAttribute('data-preset');
-      const data = PRESETS[presetKey];
-      if (!data) return;
+/* --------------------------------------------------------------------------
+   Bidirectional Input Synchronization (Slider <-> Number Box <-> Badge)
+   -------------------------------------------------------------------------- */
+function initDualInputs() {
+  bindSliderAndNumber('input-g1', 'num-g1', 'badge-g1', ' / 20');
+  bindSliderAndNumber('input-g2', 'num-g2', 'badge-g2', ' / 20');
+  bindSliderAndNumber('input-absences', 'num-absences', 'badge-absences', ' Days');
+  bindSliderAndNumber('input-failures', 'num-failures', 'badge-failures', ' Classes');
 
-      document.getElementById('input-studytime').value = data.studytime;
-      document.getElementById('input-failures').value = data.failures;
-      document.getElementById('val-failures').textContent = data.failures;
-
-      document.getElementById('input-absences').value = data.absences;
-      document.getElementById('val-absences').textContent = data.absences;
-
-      document.getElementById('input-g1').value = data.g1;
-      document.getElementById('val-g1').textContent = data.g1;
-
-      document.getElementById('input-g2').value = data.g2;
-      document.getElementById('val-g2').textContent = data.g2;
-
-      // Trigger instant prediction
-      triggerPrediction();
-    });
-  });
-
-  // Attach dynamic range slider number updates
-  setupSliderListener('input-failures', 'val-failures');
-  setupSliderListener('input-absences', 'val-absences');
-  setupSliderListener('input-g1', 'val-g1');
-  setupSliderListener('input-g2', 'val-g2');
-}
-
-function setupSliderListener(inputId, labelId) {
-  const slider = document.getElementById(inputId);
-  const label = document.getElementById(labelId);
-  if (slider && label) {
-    slider.addEventListener('input', (e) => {
-      label.textContent = e.target.value;
-    });
+  const studySelect = document.getElementById('input-studytime');
+  if (studySelect) {
+    studySelect.addEventListener('change', () => triggerPrediction());
   }
 }
 
+function bindSliderAndNumber(sliderId, numId, badgeId, suffix = '') {
+  const slider = document.getElementById(sliderId);
+  const numBox = document.getElementById(numId);
+  const badge = document.getElementById(badgeId);
+
+  if (!slider || !numBox) return;
+
+  slider.addEventListener('input', (e) => {
+    numBox.value = e.target.value;
+    if (badge) badge.textContent = `${e.target.value}${suffix}`;
+    triggerPredictionDebounced();
+  });
+
+  numBox.addEventListener('input', (e) => {
+    slider.value = e.target.value;
+    if (badge) badge.textContent = `${e.target.value}${suffix}`;
+    triggerPredictionDebounced();
+  });
+}
+
 /* --------------------------------------------------------------------------
-   Single Prediction Form
+   Quick Load Example Profiles
    -------------------------------------------------------------------------- */
-function initPredictionForm() {
+function initPresetButtons() {
+  const btns = document.querySelectorAll('.example-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const presetKey = btn.getAttribute('data-preset');
+      const data = PRESETS[presetKey];
+      if (!data) return;
+
+      // Update study time
+      const studyEl = document.getElementById('input-studytime');
+      if (studyEl) studyEl.value = data.studytime;
+
+      // Update G1
+      setFieldPair('input-g1', 'num-g1', 'badge-g1', data.g1, ' / 20');
+      // Update G2
+      setFieldPair('input-g2', 'num-g2', 'badge-g2', data.g2, ' / 20');
+      // Update Absences
+      setFieldPair('input-absences', 'num-absences', 'badge-absences', data.absences, ' Days');
+      // Update Failures
+      setFieldPair('input-failures', 'num-failures', 'badge-failures', data.failures, ' Classes');
+
+      // Trigger instant calculation
+      triggerPrediction();
+    });
+  });
+}
+
+function setFieldPair(sliderId, numId, badgeId, value, suffix) {
+  const slider = document.getElementById(sliderId);
+  const numBox = document.getElementById(numId);
+  const badge = document.getElementById(badgeId);
+
+  if (slider) slider.value = value;
+  if (numBox) numBox.value = value;
+  if (badge) badge.textContent = `${value}${suffix}`;
+}
+
+/* --------------------------------------------------------------------------
+   Form Submission & API Prediction
+   -------------------------------------------------------------------------- */
+function initForm() {
   const form = document.getElementById('grade-predict-form');
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -101,14 +108,26 @@ function initPredictionForm() {
   }
 }
 
+let debounceTimer = null;
+function triggerPredictionDebounced() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(triggerPrediction, 120);
+}
+
 async function triggerPrediction() {
-  const payload = {
-    studytime: parseFloat(document.getElementById('input-studytime').value),
-    failures: parseInt(document.getElementById('input-failures').value, 10),
-    absences: parseInt(document.getElementById('input-absences').value, 10),
-    g1: parseFloat(document.getElementById('input-g1').value),
-    g2: parseFloat(document.getElementById('input-g2').value),
-  };
+  const studytime = parseFloat(document.getElementById('input-studytime')?.value || 2);
+  const failures = parseInt(document.getElementById('num-failures')?.value || document.getElementById('input-failures')?.value || 0, 10);
+  const absences = parseInt(document.getElementById('num-absences')?.value || document.getElementById('input-absences')?.value || 4, 10);
+  const g1 = parseFloat(document.getElementById('num-g1')?.value || document.getElementById('input-g1')?.value || 12);
+  const g2 = parseFloat(document.getElementById('num-g2')?.value || document.getElementById('input-g2')?.value || 13);
+
+  // Sync hidden spans for backward compatibility
+  const vG1 = document.getElementById('val-g1'); if (vG1) vG1.textContent = g1;
+  const vG2 = document.getElementById('val-g2'); if (vG2) vG2.textContent = g2;
+  const vAbs = document.getElementById('val-absences'); if (vAbs) vAbs.textContent = absences;
+  const vFail = document.getElementById('val-failures'); if (vFail) vFail.textContent = failures;
+
+  const payload = { studytime, failures, absences, g1, g2 };
 
   try {
     const res = await fetch('/api/predict', {
@@ -116,15 +135,15 @@ async function triggerPrediction() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error('Prediction API error');
+    if (!res.ok) return;
     const data = await res.json();
-    renderPredictionResult(data);
+    renderPredictionOutput(data);
   } catch (err) {
-    console.error('Error fetching prediction:', err);
+    console.error('Prediction API call failed:', err);
   }
 }
 
-function renderPredictionResult(data) {
+function renderPredictionOutput(data) {
   const scoreEl = document.getElementById('res-score');
   const letterEl = document.getElementById('res-letter');
   const statusEl = document.getElementById('res-status');
@@ -136,8 +155,9 @@ function renderPredictionResult(data) {
   if (letterEl) letterEl.textContent = data.letter_grade;
 
   if (statusEl) {
-    statusEl.textContent = data.status;
-    statusEl.className = 'status-badge ' + (data.status === 'PASS' ? 'status-pass' : 'status-fail');
+    const isPass = data.status === 'PASS';
+    statusEl.textContent = isPass ? 'PASS' : 'AT RISK';
+    statusEl.className = 'status-badge-lg ' + (isPass ? 'pass' : 'fail');
   }
 
   if (probEl) probEl.textContent = `${data.pass_probability}%`;
@@ -148,10 +168,10 @@ function renderPredictionResult(data) {
     if (data.recommendations && data.recommendations.length > 0) {
       data.recommendations.forEach(rec => {
         const item = document.createElement('div');
-        let typeClass = 'rec-item';
-        if (rec.includes('CRITICAL') || rec.includes('Caution')) {
+        let typeClass = 'feedback-item';
+        if (rec.includes('CRITICAL') || rec.includes('Caution') || rec.includes('risk') || rec.includes('Multiple past')) {
           typeClass += ' alert';
-        } else if (rec.includes('Exemplary') || rec.includes('Outstanding') || rec.includes('Positive')) {
+        } else if (rec.includes('Exemplary') || rec.includes('Outstanding') || rec.includes('Strong')) {
           typeClass += ' success';
         }
         item.className = typeClass;
@@ -159,126 +179,45 @@ function renderPredictionResult(data) {
         recsContainer.appendChild(item);
       });
     } else {
-      recsContainer.innerHTML = '<div class="rec-item">Student is on track. Maintain current study patterns.</div>';
+      recsContainer.innerHTML = '<div class="feedback-item success">Student performance is consistent. Maintain regular study routines.</div>';
     }
   }
 }
 
 /* --------------------------------------------------------------------------
-   What-If Sensitivity Simulator
+   Collapsible Research Background: Correlation Matrix & Cohort
    -------------------------------------------------------------------------- */
-let coefficients = {
-  studytime: -0.159,
-  failures: -0.318,
-  absences: 0.043,
-  G1: 0.147,
-  G2: 0.991,
-  intercept: -1.713,
-};
-
-function initSensitivitySimulator() {
-  const simStudy = document.getElementById('sim-studytime');
-  const simAbs = document.getElementById('sim-absences');
-  const simG1 = document.getElementById('sim-g1');
-  const simG2 = document.getElementById('sim-g2');
-
-  const listeners = [simStudy, simAbs, simG1, simG2];
-  listeners.forEach(el => {
-    if (el) {
-      el.addEventListener('input', runSensitivitySimulation);
-    }
-  });
-
-  setupSliderListener('sim-studytime', 'val-sim-studytime');
-  setupSliderListener('sim-absences', 'val-sim-absences');
-  setupSliderListener('sim-g1', 'val-sim-g1');
-  setupSliderListener('sim-g2', 'val-sim-g2');
-
-  runSensitivitySimulation();
-}
-
-function runSensitivitySimulation() {
-  const study = parseFloat(document.getElementById('sim-studytime')?.value || 2);
-  const abs = parseInt(document.getElementById('sim-absences')?.value || 6, 10);
-  const g1 = parseFloat(document.getElementById('sim-g1')?.value || 11);
-  const g2 = parseFloat(document.getElementById('sim-g2')?.value || 12);
-
-  // Linear regression estimation
-  const simulatedScore = Math.max(0, Math.min(20, 
-    coefficients.intercept +
-    coefficients.studytime * study +
-    coefficients.failures * 0 +
-    coefficients.absences * abs +
-    coefficients.G1 * g1 +
-    coefficients.G2 * g2
-  ));
-
-  const baseScore = Math.max(0, Math.min(20, 
-    coefficients.intercept +
-    coefficients.studytime * 2 +
-    coefficients.failures * 0 +
-    coefficients.absences * 6 +
-    coefficients.G1 * 11 +
-    coefficients.G2 * 11
-  ));
-
-  const delta = (simulatedScore - baseScore).toFixed(1);
-  const simScoreEl = document.getElementById('sim-result-score');
-  const simDeltaEl = document.getElementById('sim-delta-badge');
-  const simAttPctEl = document.getElementById('sim-att-pct');
-
-  if (simScoreEl) simScoreEl.textContent = simulatedScore.toFixed(1);
-  if (simDeltaEl) {
-    simDeltaEl.textContent = delta >= 0 ? `+${delta} pts` : `${delta} pts`;
-    simDeltaEl.style.background = delta >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)';
-    simDeltaEl.style.color = delta >= 0 ? '#10b981' : '#f43f5e';
-  }
-
-  if (simAttPctEl) {
-    const attPct = Math.max(0, Math.min(100, (100 - (abs / 90) * 100))).toFixed(0);
-    simAttPctEl.textContent = `${attPct}%`;
-    simAttPctEl.style.color = attPct >= 60 ? '#10b981' : '#f43f5e';
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Analytics & Metrics
-   -------------------------------------------------------------------------- */
-async function loadAnalyticsAndMetrics() {
+async function loadAnalytics() {
   try {
     const res = await fetch('/api/metrics');
     if (!res.ok) return;
     const meta = await res.json();
-
-    if (meta.coefficients) {
-      coefficients = meta.coefficients;
-    }
-
-    renderCorrelationHeatmap(meta.correlation_matrix);
-    renderMetricsTable(meta);
-    renderAttendanceStats(meta.attendance_insights);
+    renderCorrelationTable(meta.correlation_matrix);
   } catch (err) {
     console.error('Failed to load metrics:', err);
   }
 }
 
-function renderCorrelationHeatmap(corr) {
+function renderCorrelationTable(corr) {
   const container = document.getElementById('correlation-heatmap-container');
   if (!container || !corr) return;
 
   const features = ['studytime', 'failures', 'absences', 'G1', 'G2'];
-  let html = '<table class="heatmap-table"><thead><tr><th>Feature</th>';
+  let html = '<table class="heatmap-table"><thead><tr><th>Factor</th>';
   features.forEach(f => {
     html += `<th>${f}</th>`;
   });
   html += '</tr></thead><tbody>';
 
   features.forEach(row => {
-    html += `<tr><th>${row}</th>`;
+    html += `<tr><th style="background:#f8fafc; font-weight:600;">${row}</th>`;
     features.forEach(col => {
       const val = corr[row] ? corr[row][col] : (row === col ? 1.0 : 0.0);
-      const color = getHeatmapColor(val);
-      html += `<td class="heatmap-cell" style="background-color: ${color}; color: #fff;">${Number(val).toFixed(2)}</td>`;
+      let bg = '#ffffff';
+      let color = '#334155';
+      if (val >= 0.7) { bg = '#dbeafe'; color = '#1e40af'; }
+      else if (val <= -0.3) { bg = '#fee2e2'; color = '#991b1b'; }
+      html += `<td style="background-color: ${bg}; color: ${color}; font-weight: 600;">${Number(val).toFixed(2)}</td>`;
     });
     html += '</tr>';
   });
@@ -286,63 +225,7 @@ function renderCorrelationHeatmap(corr) {
   container.innerHTML = html;
 }
 
-function getHeatmapColor(val) {
-  // Magma-style gradient interpolation
-  if (val >= 0.7) return 'rgba(245, 158, 11, 0.85)';
-  if (val >= 0.4) return 'rgba(217, 70, 239, 0.75)';
-  if (val >= 0.1) return 'rgba(99, 102, 241, 0.65)';
-  if (val >= -0.1) return 'rgba(31, 41, 55, 0.85)';
-  if (val >= -0.25) return 'rgba(76, 29, 149, 0.7)';
-  return 'rgba(15, 23, 42, 0.9)';
-}
-
-function renderMetricsTable(meta) {
-  const lr = meta.linear_regression || {};
-  const ridge = meta.ridge_regression || {};
-  const rf = meta.rf_regressor || {};
-  const clf = meta.classifier || {};
-
-  const lrMse = document.getElementById('metric-lr-mse');
-  const lrR2 = document.getElementById('metric-lr-r2');
-  const lrCv = document.getElementById('metric-lr-cv');
-
-  if (lrMse) lrMse.textContent = lr.mse ?? '2.62';
-  if (lrR2) lrR2.textContent = `${lr.r2_percentage ?? '86.14'}%`;
-  if (lrCv) lrCv.textContent = `${lr.cv_r2_mean ?? '0.84'} ± ${lr.cv_r2_std ?? '0.03'}`;
-
-  const ridgeMse = document.getElementById('metric-ridge-mse');
-  const ridgeR2 = document.getElementById('metric-ridge-r2');
-  if (ridgeMse) ridgeMse.textContent = ridge.mse ?? '2.62';
-  if (ridgeR2) ridgeR2.textContent = `${ridge.r2_percentage ?? '86.14'}%`;
-
-  const rfMse = document.getElementById('metric-rf-mse');
-  const rfR2 = document.getElementById('metric-rf-r2');
-  if (rfMse) rfMse.textContent = rf.mse ?? '3.01';
-  if (rfR2) rfR2.textContent = `${rf.r2_percentage ?? '84.07'}%`;
-
-  const clfAcc = document.getElementById('metric-clf-acc');
-  const clfF1 = document.getElementById('metric-clf-f1');
-  if (clfAcc) clfAcc.textContent = `${clf.accuracy_pct ?? '91.14'}%`;
-  if (clfF1) clfF1.textContent = clf.f1_score ?? '0.93';
-}
-
-function renderAttendanceStats(att) {
-  if (!att) return;
-  const highAvg = document.getElementById('stat-att-high-grade');
-  const lowAvg = document.getElementById('stat-att-low-grade');
-  const highPass = document.getElementById('stat-att-high-pass');
-  const lowPass = document.getElementById('stat-att-low-pass');
-
-  if (highAvg && att.above_60_attendance) highAvg.textContent = `${att.above_60_attendance.avg_grade} / 20`;
-  if (lowAvg && att.below_60_attendance) lowAvg.textContent = `${att.below_60_attendance.avg_grade} / 20`;
-  if (highPass && att.above_60_attendance) highPass.textContent = `${att.above_60_attendance.pass_rate}% Pass`;
-  if (lowPass && att.below_60_attendance) lowPass.textContent = `${att.below_60_attendance.pass_rate}% Pass`;
-}
-
-/* --------------------------------------------------------------------------
-   Sample Cohort Loader
-   -------------------------------------------------------------------------- */
-async function loadSampleCohort() {
+async function loadCohort() {
   const tbody = document.getElementById('cohort-tbody');
   if (!tbody) return;
 
@@ -353,37 +236,28 @@ async function loadSampleCohort() {
 
     tbody.innerHTML = '';
     students.forEach(s => {
-      // Calculate prediction locally or from API
-      const g3Pred = Math.max(0, Math.min(20,
-        coefficients.intercept +
-        coefficients.studytime * s.studytime +
-        coefficients.failures * s.failures +
-        coefficients.absences * s.absences +
-        coefficients.G1 * s.G1 +
-        coefficients.G2 * s.G2
-      )).toFixed(1);
-
-      const isPass = g3Pred >= 10.0;
-      const statusBadge = isPass 
-        ? `<span class="status-badge status-pass">PASS</span>` 
-        : `<span class="status-badge status-fail">AT RISK</span>`;
+      const g3Pred = (-1.71 + 0.99 * s.G2 + 0.15 * s.G1 - 0.32 * s.failures - 0.16 * s.studytime + 0.04 * s.absences).toFixed(1);
+      const isPass = parseFloat(g3Pred) >= 10.0;
+      const badge = isPass 
+        ? `<span style="color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.75rem;">PASS</span>` 
+        : `<span style="color:#991b1b; background:#fef2f2; border:1px solid #fecaca; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.75rem;">AT RISK</span>`;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${s.id}</strong></td>
         <td>${s.name}</td>
-        <td><span class="badge-tag">${s.profile}</span></td>
-        <td>${s.studytime} (${s.studytime === 1 ? '<2h' : s.studytime === 2 ? '2-5h' : '5+h'})</td>
+        <td><span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.78rem;">${s.profile}</span></td>
+        <td>${s.studytime === 1 ? '<2h' : s.studytime === 2 ? '2-5h' : '5+h'}</td>
         <td>${s.failures}</td>
-        <td>${s.absences}</td>
+        <td>${s.absences} days</td>
         <td>${s.G1}</td>
         <td>${s.G2}</td>
         <td><strong>${g3Pred} / 20</strong></td>
-        <td>${statusBadge}</td>
+        <td>${badge}</td>
       `;
       tbody.appendChild(tr);
     });
   } catch (err) {
-    console.error('Error loading sample cohort:', err);
+    console.error('Failed to load sample cohort:', err);
   }
 }
